@@ -93,7 +93,7 @@ func TestInsert(t *testing.T) {
 		actual, ok := lru.Get(input[0].key)
 
 		is.Equal("", actual)
-		is.Equal(false, ok)
+		is.True(!ok)
 	})
 }
 
@@ -118,7 +118,7 @@ func TestGet(t *testing.T) {
 		actual, ok := lru.Get("not here")
 
 		is.Equal("", actual)
-		is.Equal(false, ok)
+		is.True(!ok)
 	})
 
 	t.Run("Should promote the used key when fetched", func(t *testing.T) {
@@ -142,7 +142,7 @@ func TestGet(t *testing.T) {
 
 		expected := input[0].value
 		is.Equal(expected, actual)
-		is.Equal(true, ok)
+		is.True(ok)
 
 		key := "bah"
 		value := "tche"
@@ -151,6 +151,37 @@ func TestGet(t *testing.T) {
 		removed, ok := lru.Get(input[1].key)
 
 		is.Equal("", removed)
-		is.Equal(false, ok)
+		is.True(!ok)
+	})
+}
+
+func TestDelete(t *testing.T) {
+	t.Run("Should have a cache miss after a delete", func(t *testing.T) {
+		is := is.New(t)
+
+		lru := lrugo.NewLRU[string](3)
+
+		input := []struct {
+			key, value string
+		}{
+			{"uai", "so"},
+			{"trem", "bao"},
+			{"tri", "massa"},
+		}
+
+		for _, v := range input {
+			lru.Insert(v.key, v.value)
+		}
+
+		actual, ok := lru.Get("tri")
+
+		is.Equal(input[2].value, actual)
+		is.True(ok)
+
+		is.True(lru.Delete("tri"))
+
+		actual, ok = lru.Get("tri")
+		is.Equal("", actual)
+		is.True(!ok)
 	})
 }
